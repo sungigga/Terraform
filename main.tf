@@ -2,10 +2,30 @@
     region = "eu-west-2"
  }
  resource "aws_instance" "prod" {
-    ami = "ami-019374baf467d6601"
+    ami = "ami-05c172c7f0d3aed00"
     instance_type = "t2.micro" 
+    vpc_security_group_ids = [aws_security_group.instance.id]
+
+    user_data = <<-EOF
+               #!bin/bash
+               echo "Hello, world" > index.html
+               nohup busybox httpd -f -p 8080 &
+               EOF
+      user_data_replace_on_change = true
 
     tags = {
       Name = "caly-prod"
     }
+ }
+
+ resource "aws_security_group" "instance"{
+   name = "caly-prod-instance"
+
+   ingress {
+      from_port = 8080
+      to_port = 8080
+      protocol = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+   }
+   
  }
